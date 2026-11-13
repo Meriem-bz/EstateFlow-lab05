@@ -1,8 +1,6 @@
+
 using EstateFlow.Application;
-using EstateFlow.Infrastructure.Data;
-using EstateFlow.Application.Services;
-using FluentValidation;
-using Microsoft.EntityFrameworkCore;
+using EstateFlow.Infrastructure;
 using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,23 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi(options =>
 {
     options.OpenApiVersion = OpenApiSpecVersion.OpenApi3_0;
 });
 
-
-builder.Services.AddDbContext<EstateFlowDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("EstateFlowDbConnection")));
-
-// Classes requesting the interface get the same scoped DbContext instance
-builder.Services.AddScoped<IApplicationDbContext>(provider =>
-    provider.GetRequiredService<EstateFlowDbContext>());
-
-builder.Services.AddValidatorsFromAssemblyContaining<IApplicationDbContext>();
-
-builder.Services.AddScoped<IMeterReadingService, MeterReadingService>();
+// Each layer's services are registered by its own extension method
+builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
 
